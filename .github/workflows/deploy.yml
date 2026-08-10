@@ -1,0 +1,62 @@
+name: Deploy Chatbot to VM
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Google Cloud VM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VM_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VM_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create folder and Copy files to VM
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} "mkdir -p /opt/chatbot_meta"
+          rsync -az --delete \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no" \
+            --exclude='venv/' \
+            --exclude='__pycache__/' \
+            --exclude='.git/' \
+            --exclude='.env' \
+            ./ ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }}:/opt/chatbot_meta/
+
+      - name: Create .env file on VM
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} "
+            cat > /opt/chatbot_meta/.env << 'ENVEOF'
+          VERIFY_TOKEN=${{ secrets.VERIFY_TOKEN }}
+          APP_SECRET=${{ secrets.APP_SECRET }}
+          WHATSAPP_TOKEN=${{ secrets.WHATSAPP_TOKEN }}
+          PHONE_NUMBER_ID=${{ secrets.PHONE_NUMBER_ID }}
+          ENVEOF
+            "
+
+      - name: Setup Virtual Environment and Install Dependencies
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} "
+            cd /opt/chatbot_meta &&
+            python3 -m venv venv &&
+            source venv/bin/activate &&
+            pip install -r requirements.txt
+            "
+      
+      - name: Restart Chatbot Service
+        run: |
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no \
+            ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} "
+            sudo systemctl restart chatbot || echo 'Service not configured yet, skipping restart.'
+            "
