@@ -8,6 +8,6 @@ class Settings:
     APP_SECRET: str = os.getenv("APP_SECRET", "")
     WHATSAPP_TOKEN: str = os.getenv("WHATSAPP_TOKEN", "")
     PHONE_NUMBER_ID: str = os.getenv("PHONE_NUMBER_ID", "")
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
 
 settings = Settings()

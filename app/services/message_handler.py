@@ -35,12 +35,12 @@ async def process_whatsapp_message(body: dict):
                             if not reply_text:
                                 try:
                                     from app.config import settings
-                                    from openai import AsyncOpenAI
+                                    from groq import AsyncGroq
                                     
-                                    if settings.OPENAI_API_KEY:
-                                        client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+                                    if settings.GROQ_API_KEY:
+                                        client = AsyncGroq(api_key=settings.GROQ_API_KEY)
                                         response = await client.chat.completions.create(
-                                            model="gpt-3.5-turbo",
+                                            model="llama3-8b-8192",
                                             messages=[
                                                 {"role": "system", "content": "Eres el asistente virtual amable de la aplicación móvil Upmina."},
                                                 {"role": "user", "content": text}
@@ -51,10 +51,11 @@ async def process_whatsapp_message(body: dict):
                                     else:
                                         reply_text = "Lo siento, no tengo una respuesta configurada para eso."
                                 except Exception as e:
-                                    print(f"❌ Error con OpenAI: {e}")
+                                    print(f"❌ Error con Groq: {e}")
                                     reply_text = "Lo siento, mi sistema de IA no está disponible en este momento."
                             
-                            await send_whatsapp_message(sender_phone, reply_text)
+                            if reply_text:
+                                await send_whatsapp_message(sender_phone, reply_text)
                         else:
                             print(f"⚠️ Recibido mensaje de tipo no soportado: {msg_type}")
     except Exception as e:

@@ -44,7 +44,7 @@ jobs:
           APP_SECRET=${{ secrets.APP_SECRET }}
           WHATSAPP_TOKEN=${{ secrets.WHATSAPP_TOKEN }}
           PHONE_NUMBER_ID=${{ secrets.PHONE_NUMBER_ID }}
-          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
           ENVEOF
             "
 
