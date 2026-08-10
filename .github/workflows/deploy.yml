@@ -9,6 +9,9 @@ jobs:
   deploy:
     name: Deploy to Google Cloud VM
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://chatbothb.duckdns.org/api/v1/webhook
 
     steps:
       - name: Checkout code
