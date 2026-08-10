@@ -19,8 +19,40 @@ async def process_whatsapp_message(body: dict):
                             text = message_info["text"]["body"]
                             print(f"\n📩 Mensaje de {sender_phone}: {text}")
                             
-                            # Lógica del Chatbot
-                            reply_text = f"Hola! Soy tu asistente virtual. Recibí tu mensaje: '{text}'"
+                            # === Sistema Híbrido: Reglas + IA ===
+                            text_lower = text.lower()
+                            reply_text = ""
+                            
+                            # 1. Reglas (Respuestas rápidas y estáticas)
+                            if "hola" in text_lower or "buenos dias" in text_lower:
+                                reply_text = "¡Hola! Bienvenido a Upmina. ¿En qué te podemos ayudar hoy?"
+                            elif "precio" in text_lower or "costo" in text_lower:
+                                reply_text = "Nuestra app Upmina es gratuita, pero ofrecemos un plan premium por $4.99/mes."
+                            elif "soporte" in text_lower or "ayuda" in text_lower:
+                                reply_text = "Puedes contactar a nuestro equipo de soporte enviando un correo a soporte@upmina.com."
+                            
+                            # 2. IA (Si ninguna regla coincide)
+                            if not reply_text:
+                                try:
+                                    from app.config import settings
+                                    from openai import AsyncOpenAI
+                                    
+                                    if settings.OPENAI_API_KEY:
+                                        client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+                                        response = await client.chat.completions.create(
+                                            model="gpt-3.5-turbo",
+                                            messages=[
+                                                {"role": "system", "content": "Eres el asistente virtual amable de la aplicación móvil Upmina."},
+                                                {"role": "user", "content": text}
+                                            ],
+                                            max_tokens=150
+                                        )
+                                        reply_text = response.choices[0].message.content
+                                    else:
+                                        reply_text = "Lo siento, no tengo una respuesta configurada para eso."
+                                except Exception as e:
+                                    print(f"❌ Error con OpenAI: {e}")
+                                    reply_text = "Lo siento, mi sistema de IA no está disponible en este momento."
                             
                             await send_whatsapp_message(sender_phone, reply_text)
                         else:
