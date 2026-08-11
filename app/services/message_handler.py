@@ -40,7 +40,7 @@ async def process_whatsapp_message(body: dict):
                                     if settings.GROQ_API_KEY:
                                         client = AsyncGroq(api_key=settings.GROQ_API_KEY)
                                         response = await client.chat.completions.create(
-                                            model="llama3-8b-8192",
+                                            model="llama-3.1-8b-instant",
                                             messages=[
                                                 {"role": "system", "content": "Eres el asistente virtual amable de la aplicación móvil Upmina."},
                                                 {"role": "user", "content": text}
