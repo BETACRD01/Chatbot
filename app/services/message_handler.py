@@ -55,6 +55,7 @@ async def process_whatsapp_message(body: dict):
                                     reply_text = "Lo siento, mi sistema de IA no está disponible en este momento."
                             
                             if reply_text:
+                                print(f"🤖 Respuesta a enviar: {reply_text}")
                                 await send_whatsapp_message(sender_phone, reply_text)
                         else:
                             print(f"⚠️ Recibido mensaje de tipo no soportado: {msg_type}")
